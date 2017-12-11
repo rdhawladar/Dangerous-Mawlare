@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="500dp"
+    android:theme="@style/Theme.AppCompat.NoActionBar"
+    tools:context="com.example.axu1.richarddawkinsalarmclock.MainActivity">
+
+
+    <ImageView
+        android:id="@+id/toastImg2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:src="@drawable/images"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/toastImg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="188dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/images"
+        app:layout_constraintStart_toStartOf="@+id/toastImg2"
+        app:layout_constraintTop_toTopOf="@+id/toastImg2" />
+
+
+    <TextView
+        android:id="@+id/toastTxt"
+        android:layout_width="311dp"
+        android:layout_height="200dp"
+        android:text="text launching time"
+        android:textColor="#ffffff"
+        android:textSize="40dp"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="46dp"
+        tools:layout_editor_absoluteY="41dp" />
+
+</android.support.constraint.ConstraintLayout>
