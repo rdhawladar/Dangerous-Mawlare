@@ -1,8 +1,5 @@
 package com.example.axu1.richarddawkinsalarmclock;
 
-/**
- * Created by mosharrofrubel on 12/31/16.
- */
 
 import android.app.Application;
 import android.text.TextUtils;
@@ -12,7 +9,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 /**
- * Created by mosharrofrubel on 9/21/15.
+ * Created by RD Hawladar on 9/21/15.
  */
 public class AppController extends Application {
 

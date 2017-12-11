@@ -3,8 +3,9 @@
     package="com.example.axu1.richarddawkinsalarmclock">
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.INTERNET" />
-
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".AppController"
@@ -13,8 +14,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:screenOrientation="portrait"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,10 +24,19 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".AlarmReceiver" />
+        <receiver android:name=".AlarmReceiver" android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
 
         <service android:name=".RingtonePlayingService"
-            android:enabled="true">
+            android:enabled="true"
+            android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="com.example.axu1.richarddawkinsalarmclock.RingtonePlayingService" />
+            </intent-filter>
         </service>
 
     </application>
