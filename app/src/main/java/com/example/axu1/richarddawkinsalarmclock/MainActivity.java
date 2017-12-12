@@ -10,9 +10,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.provider.Settings;
+import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -52,11 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView alarmTextView;
     public String mDeviceId = null;
     String uniqueID;
-    UUID deviceId;
-    String sub_id;
-    String sim_serial;
-    String line_num;
-    String main_num;
+    public Handler handler;
+    String clientId, telephoneNo;
+    LayoutInflater layoutInflater;
 
     private AlarmReceiver alarm;
 
@@ -69,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         //RETRIVEING MOBILE DATA AND SEND TO SERVER IF NOT EXIST
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -85,6 +88,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        mDeviceId = tMgr.getDeviceId();
+        uniqueID =  Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+/*
         if (null != tMgr) mDeviceId = tMgr.getDeviceId();
 
         if (null == mDeviceId || 0 == mDeviceId.length())
@@ -96,14 +103,14 @@ public class MainActivity extends AppCompatActivity {
 
         final String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 
-        deviceId = new UUID(androidId.hashCode(), ((long) mDeviceId.hashCode() << 32));
+        //deviceId = new UUID(androidId.hashCode(), ((long) mDeviceId.hashCode() << 32));
 
         uniqueID = UUID.randomUUID().toString();
 
         sub_id = tMgr.getSubscriberId();
         sim_serial = tMgr.getSimSerialNumber();
         line_num = tMgr.getLine1Number();
-        main_num = tMgr.getVoiceMailNumber();
+        main_num = tMgr.getVoiceMailNumber();*/
 
 
 
@@ -197,7 +204,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        Toast.makeText(getApplicationContext(), "start application", Toast.LENGTH_SHORT).show();
+
+
         fetchingData();
 
         boolean connected = false;
@@ -210,30 +218,39 @@ public class MainActivity extends AppCompatActivity {
         else
             connected = false;
 
-        if(false){
-            LayoutInflater layoutInflater = (LayoutInflater)
-                    getSystemService(LAYOUT_INFLATER_SERVICE);
-            View layout = layoutInflater.inflate(R.layout.toast_img, null);
-            ImageView toastimg = (ImageView)
-                    layout.findViewById(R.id.toastImg);
-            toastimg.setImageResource(R.drawable.image_w);
-            TextView toastmes = (TextView)
-                    layout.findViewById(R.id.toastTxt);
-            toastmes.setText("COnntect to the internet fast... ");
-            final Toast toast = new Toast(getApplicationContext());
-            toast.setGravity(Gravity.BOTTOM, 0, 0);
-            toast.setView(layout);
-            toast.show();
-            new CountDownTimer(500, 50000)
-            {
+        if(!connected){
+            handler = new Handler();
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    layoutInflater = (LayoutInflater)
+                            getSystemService(LAYOUT_INFLATER_SERVICE);
+                    View layout = layoutInflater.inflate(R.layout.toast_img, null);
+                    ImageView toastimg = (ImageView)
+                            layout.findViewById(R.id.toastImg);
+                    toastimg.setImageResource(R.drawable.image_w);
+                    TextView toastmes = (TextView)
+                            layout.findViewById(R.id.toastTxt);
+                                    /*toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);*/
+                    toastmes.setText("Please connect to the internet : " );
+                    final Toast toast = new Toast(getApplicationContext());
+                    toast.setGravity(Gravity.BOTTOM, 0, 0);
+                    toast.setView(layout);
+                    toast.show();
+                    new CountDownTimer(90, 1000)
+                    {
 
-                public void onTick(long millisUntilFinished) {toast.show();}
-                public void onFinish() {toast.show();}
+                        public void onTick(long millisUntilFinished) {toast.show();}
+                        public void onFinish() {toast.show();}
 
-            }.start();
+                    }.start();
+                    handler.postDelayed(this, 100);
+                }
+            };
+
+            handler.postDelayed(runnable, 100);
 
         }
-        Toast.makeText(getApplicationContext(), String.valueOf(connected).toString(), Toast.LENGTH_SHORT).show();
 
         inst = this;
     }
@@ -252,9 +269,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         String myURL = "http://fh4c2dv5yu.com/android_get.php?udid=";
-        myURL += deviceId;
+        myURL += mDeviceId;
 
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(myURL, new Response.Listener<JSONArray>() {
+
+
 
             @Override
             public void onResponse(JSONArray response) {
@@ -275,12 +294,19 @@ public class MainActivity extends AppCompatActivity {
                         client_id[i] = client_id[i].substring(2,client_id[i].length());
                         telephone[i] = jsonObject.getString("telephone");
                         telset1[i] = jsonObject.getString("telset1");
+                        Log.d("boolead: ", Integer.valueOf(status[i]).toString());
 
-                        if(device_id[i].equals(String.valueOf(mDeviceId).toString())) {
-                            Log.d("status: ", String.valueOf(status[i]));
-                            if(status[i].equals(String.valueOf(0).toString())){
-                                for (int j=0; j < 10; j++) {
-                                    LayoutInflater layoutInflater = (LayoutInflater)
+                        clientId = client_id[i];
+                        telephoneNo = telephone[i];
+
+                        if( Integer.valueOf(status[i]).equals(0)) {
+                            handler = new Handler();
+                            Runnable runnable = new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    Log.d("delay: ", "test time");
+                                    layoutInflater = (LayoutInflater)
                                             getSystemService(LAYOUT_INFLATER_SERVICE);
                                     View layout = layoutInflater.inflate(R.layout.toast_img, null);
                                     ImageView toastimg = (ImageView)
@@ -288,26 +314,30 @@ public class MainActivity extends AppCompatActivity {
                                     toastimg.setImageResource(R.drawable.image_w);
                                     TextView toastmes = (TextView)
                                             layout.findViewById(R.id.toastTxt);
-                                    toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);
-           /*                         toastmes.setText("Message"+j+"\n 会員ＩＤ: "+client_id[i]+ "\n  -Mobile : "+telephone[i] + "\n -devid ID: "+ mDeviceId +
-                                            "\n -Unique ID: "+uniqueID+ "\n -subscriber ID: "+sub_id+"\n -sim srial ID: "+sim_serial+"\n -main number:"+main_num+"\n -line number:"
-                                            +line_num);*/
+                                    /*toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);*/
+                                    toastmes.setText("Please call to the following number>>> \n Your ID: "+clientId+"\n Contact Number : \n "+telephoneNo);
                                     final Toast toast = new Toast(getApplicationContext());
                                     toast.setGravity(Gravity.BOTTOM, 0, 0);
                                     toast.setView(layout);
                                     toast.show();
-                                    new CountDownTimer(500, 50000)
-                                    {
+                                    new CountDownTimer(90, 1000) {
 
-                                        public void onTick(long millisUntilFinished) {toast.show();}
-                                        public void onFinish() {toast.show();}
+                                        public void onTick(long millisUntilFinished) {
+                                            toast.show();
+                                        }
+
+                                        public void onFinish() {
+                                            toast.show();
+                                        }
 
                                     }.start();
+                                    handler.postDelayed(this, 100);
                                 }
+                            };
 
-                            }
-
+                            handler.postDelayed(runnable, 100);
                         }
+
 
                     } catch (JSONException e) {
                         e.printStackTrace();

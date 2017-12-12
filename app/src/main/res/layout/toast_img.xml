@@ -36,7 +36,7 @@
         android:layout_height="500dp"
         android:text="text launching time"
         android:textColor="#000"
-        android:textSize="40dp"
+        android:textSize="23dp"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="6dp"
         tools:layout_editor_absoluteY="5dp" />
