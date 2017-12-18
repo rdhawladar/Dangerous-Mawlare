@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "com.example.axu1.richarddawkinsalarmclock"
+        applicationId "com.example.axu1.z"
         minSdkVersion 15
         targetSdkVersion 22
         versionCode 1

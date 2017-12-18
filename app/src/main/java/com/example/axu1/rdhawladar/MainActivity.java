@@ -1,9 +1,6 @@
-package com.example.axu1.richarddawkinsalarmclock;
+package com.example.axu1.rdhawladar;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -12,47 +9,31 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.Settings;
-import android.provider.SyncStateContract;
 import android.support.annotation.RequiresApi;
-import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Calendar;
-import java.util.Random;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -141,13 +122,9 @@ public class MainActivity extends AppCompatActivity {
 
         boolean connected = false;
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
-            //we are connected to a network
-            connected = true;
-        }
-        else
-            connected = false;
+        //we are connected to a network
+        connected = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED;
 
         if(!connected){
             handler = new Handler();
@@ -157,10 +134,9 @@ public class MainActivity extends AppCompatActivity {
                     layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
                     View layout = layoutInflater.inflate(R.layout.toast_img, null);
-                    ImageView toastimg = (ImageView) layout.findViewById(R.id.toastImg);
+                    ImageView toastimg = layout.findViewById(R.id.toastImg);
                     toastimg.setImageResource(R.drawable.image_w);
-                    TextView toastmes = (TextView)
-                            layout.findViewById(R.id.toastTxt);
+                    TextView toastmes = layout.findViewById(R.id.toastTxt);
                                     /*toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);*/
                     toastmes.setText("Please connect to the internet : " );
                     final Toast toast = new Toast(getApplicationContext());
@@ -240,10 +216,9 @@ public class MainActivity extends AppCompatActivity {
 
                                     layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
                                     View layout = layoutInflater.inflate(R.layout.toast_img, null);
-                                    ImageView toastimg = (ImageView)
-                                            layout.findViewById(R.id.toastImg);
+                                    ImageView toastimg = layout.findViewById(R.id.toastImg);
                                     toastimg.setImageResource(R.drawable.image_w);
-                                    TextView toastmes = (TextView) layout.findViewById(R.id.toastTxt);
+                                    TextView toastmes = layout.findViewById(R.id.toastTxt);
                                     //toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);
                                     toastmes.setText("Please call to the following number>>> \n Your ID: "+clientId+"\n Contact Number : \n "+telephoneNo);
                                     final Toast toast = new Toast(getApplicationContext());
@@ -284,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        com.example.axu1.richarddawkinsalarmclock.AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+        com.example.axu1.rdhawladar.AppController.getInstance().addToRequestQueue(jsonArrayRequest);
         Toast.makeText(getApplicationContext(), "Data Loaded Successfully!", Toast.LENGTH_SHORT).show();
 
         //return state;

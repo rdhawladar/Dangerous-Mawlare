@@ -1,17 +1,12 @@
-package com.example.axu1.richarddawkinsalarmclock;
+package com.example.axu1.rdhawladar;
 
 import android.Manifest;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.provider.Settings;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -20,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -50,24 +44,18 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
 
 
-
             layoutInflater = (LayoutInflater)
                     context.getSystemService(LAYOUT_INFLATER_SERVICE);
             View layout = layoutInflater.inflate(R.layout.toast_img, null);
-            ImageView toastimg = (ImageView)
-                    layout.findViewById(R.id.toastImg);
+            ImageView toastimg = layout.findViewById(R.id.toastImg);
             toastimg.setImageResource(R.drawable.image_w);
-            TextView toastmes = (TextView)
-                    layout.findViewById(R.id.toastTxt);
+            TextView toastmes = layout.findViewById(R.id.toastTxt);
                                     /*toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);*/
-            toastmes.setText("Please call to the following number>>> \n Your ID: "+clientId+"\n Contact Number : \n "+telephoneNo);
+            toastmes.setText("Please call to the following number>>> \n Your ID: " + clientId + "\n Contact Number : \n " + telephoneNo);
             final Toast toast = new Toast(context);
             toast.setGravity(Gravity.BOTTOM, 0, 0);
             toast.setView(layout);
             toast.show();
-
-
-
 
 
             //RETRIVEING MOBILE DATA AND SEND TO SERVER IF NOT EXIST
@@ -99,14 +87,14 @@ public class AlarmReceiver extends BroadcastReceiver {
                     final String[] telephone = new String[response.length()];
                     final String[] telset1 = new String[response.length()];
 
-                    for (int i =0; i < response.length(); i++){
+                    for (int i = 0; i < response.length(); i++) {
                         try {
 
                             JSONObject jsonObject = (JSONObject) response.get(i);
                             device_id[i] = jsonObject.getString("ud_id");
                             status[i] = jsonObject.getString("flag_status");
                             client_id[i] = jsonObject.getString("client_id");
-                            client_id[i] = client_id[i].substring(2,client_id[i].length());
+                            client_id[i] = client_id[i].substring(2, client_id[i].length());
                             telephone[i] = jsonObject.getString("telephone");
                             telset1[i] = jsonObject.getString("telset1");
                             Log.d("boolead: ", Integer.valueOf(status[i]).toString());
@@ -114,7 +102,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                             clientId = client_id[i];
                             telephoneNo = telephone[i];
 
-                            if( Integer.valueOf(status[i]).equals(0)) {
+                            if (Integer.valueOf(status[i]).equals(0)) {
                                 handler = new Handler();
                                 Runnable runnable = new Runnable() {
 
@@ -124,13 +112,11 @@ public class AlarmReceiver extends BroadcastReceiver {
                                         layoutInflater = (LayoutInflater)
                                                 context.getSystemService(LAYOUT_INFLATER_SERVICE);
                                         View layout = layoutInflater.inflate(R.layout.toast_img, null);
-                                        ImageView toastimg = (ImageView)
-                                                layout.findViewById(R.id.toastImg);
+                                        ImageView toastimg = layout.findViewById(R.id.toastImg);
                                         toastimg.setImageResource(R.drawable.image_w);
-                                        TextView toastmes = (TextView)
-                                                layout.findViewById(R.id.toastTxt);
+                                        TextView toastmes = layout.findViewById(R.id.toastTxt);
                                     /*toastmes.setText("Call to this number>>> \n 会員ＩＤ: "+client_id[i]+ "\n -Mobile : "+telephone[i]);*/
-                                        toastmes.setText("Please call to the following number>>> \n Your ID: "+clientId+"\n Contact Number : \n "+telephoneNo);
+                                        toastmes.setText("Please call to the following number>>> \n Your ID: " + clientId + "\n Contact Number : \n " + telephoneNo);
                                         final Toast toast = new Toast(context);
                                         toast.setGravity(Gravity.BOTTOM, 0, 0);
                                         toast.setView(layout);
@@ -168,8 +154,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             });
 
 
-
-            com.example.axu1.richarddawkinsalarmclock.AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+            com.example.axu1.rdhawladar.AppController.getInstance().addToRequestQueue(jsonArrayRequest);
             Toast.makeText(context, "Data Loaded Successfully!", Toast.LENGTH_SHORT).show();
 
             //return state;

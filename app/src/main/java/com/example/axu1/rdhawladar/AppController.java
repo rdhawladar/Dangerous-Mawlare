@@ -1,4 +1,4 @@
-package com.example.axu1.richarddawkinsalarmclock;
+package com.example.axu1.rdhawladar;
 
 
 import android.app.Application;
